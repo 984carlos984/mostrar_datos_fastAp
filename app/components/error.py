@@ -88,3 +88,10 @@ def _yes(page:ft.Page, function_on_yes):
         page.pop_dialog()
     page.update()
     function_on_yes()
+
+class ApiError(Exception):
+    pass
+
+def api_error_to_text(e: Exception) -> str:
+    return str(e)
+
