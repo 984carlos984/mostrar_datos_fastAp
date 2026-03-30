@@ -1,16 +1,14 @@
 import flet as ft
 from typing import Any
-from app.services.transacciones_api_productos import list_products,get_product,create_product,update_product,delete_product
-from app.components.popup import show_popup, show_popup_auto_close, show_snackbar, confirm_dialog
-from app.components.error import ApiError, api_error_to_text
-from app.styles.estilos import Colors,Textos_estilos,Card
+from app.services.transacciones_api_productos import list_products
+from app.styles.estilos import Colors, Textos_estilos
 
-def products_view(page:ft.Page) -> ft.Control:
-    rows_data:list[dict[str,Any]]=[]
-    total_items=0
-    total_text = ft.Text("Total de productos: (cargando...)", style=Textos_estilos.H4)
-    #Encabezados
-    columnas=[
+def products_view(page: ft.Page) -> ft.Control:
+    # 1. Obtener los productos desde Supabase
+    productos_bd = list_products()
+    
+    # Encabezados
+    columnas = [
         ft.DataColumn(label=ft.Text("Nombre", style=Textos_estilos.H4)),
         ft.DataColumn(label=ft.Text("Cantidad", style=Textos_estilos.H4)),
         ft.DataColumn(label=ft.Text("Ingreso", style=Textos_estilos.H4)),
@@ -18,22 +16,37 @@ def products_view(page:ft.Page) -> ft.Control:
         ft.DataColumn(label=ft.Text("Max", style=Textos_estilos.H4)),
     ]
 
-    #Se definen las filas de la tabla
-    #Cada data.append agrega
-    data=[]
-    data.append(
-        ft.DataRow(
-            cells=[
-                ft.DataCell(ft.Text("nombre1...")),
-                ft.DataCell(ft.Text("cantidad1...")),
-                ft.DataCell(ft.Text("ingreso1...")),
-                ft.DataCell(ft.Text("min1...")),
-                ft.DataCell(ft.Text("max1...")),
-            ]
+    # 2. Llenar los datos recorriendo lo que nos regresó Supabase
+    data = []
+    
+    if not productos_bd:
+        # Si está vacío o hubo error
+        data.append(
+            ft.DataRow(cells=[
+                ft.DataCell(ft.Text("Crea la tabla 'productos' en Supabase", color="red")),
+                ft.DataCell(ft.Text("-")),
+                ft.DataCell(ft.Text("-")),
+                ft.DataCell(ft.Text("-")),
+                ft.DataCell(ft.Text("-")),
+            ])
         )
-    )
-    #Se crea la tabla con los encabezados(columnas) y los datos de prueba(data)
-    tabla=ft.DataTable(
+    else:
+        # Recorremos cada producto.
+        for prod in productos_bd:
+            data.append(
+                ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text(str(prod.get("nombre", "")))),
+                        ft.DataCell(ft.Text(str(prod.get("cantidad", "")))),
+                        ft.DataCell(ft.Text(str(prod.get("ingreso", "")))),
+                        ft.DataCell(ft.Text(str(prod.get("min", "")))),
+                        ft.DataCell(ft.Text(str(prod.get("max", "")))),
+                    ]
+                )
+            )
+
+    # Se crea la tabla con los datos dinámicos
+    tabla = ft.DataTable(
         columns=columnas,
         rows=data,
         width=900,
