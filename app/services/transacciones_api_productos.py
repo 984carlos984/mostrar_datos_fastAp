@@ -28,8 +28,18 @@ def get_product(product_id: str):
 def create_product(data: dict):
     if not supabase:
         return {}
+    
+    # Mapeo de campos del formulario (inglés) a la Base de Datos (español)
+    db_data = {
+        "nombre": data.get("name", data.get("nombre")),
+        "cantidad": data.get("quantity", data.get("cantidad")),
+        "ingreso": data.get("ingreso_date", data.get("ingreso")),
+        "min": data.get("min_stock", data.get("min")),
+        "max": data.get("max_stock", data.get("max")),
+    }
+    
     try:
-        response = supabase.table("productos").insert(data).execute()
+        response = supabase.table("productos").insert(db_data).execute()
         if response.data:
             return response.data[0]
         return {}
